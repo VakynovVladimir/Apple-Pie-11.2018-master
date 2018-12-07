@@ -25,8 +25,16 @@ class ViewController: UIViewController {
         ]
     
     let incorrectMovesAllowed = 7
-    var totalWins = 0
-    var totalLosses = 0
+    var totalWins = 0 {
+        didSet {
+            newRound()
+        }
+    }
+    var totalLosses = 0 {
+        didSet {
+            newRound()
+        }
+    }
     
     var game: Game!
     
@@ -36,19 +44,37 @@ class ViewController: UIViewController {
     }
     
     func newRound() {
-        let word = listOfWords.removeFirst()
-        game = Game(word: word, incorrectMovesRemaining: incorrectMovesAllowed, guessedLetters: [])
+        if !listOfWords.isEmpty {
+            
+        let newWord = listOfWords.removeFirst()
+        game = Game(word: newWord, incorrectMovesRemaining: incorrectMovesAllowed, guessedLetters: []
+        )
+        
+        enableletterButtons(true)
+        
+        } else {
+             enableletterButtons(false)
+        }
         updateUI()
     }
     
+    
+    func enableletterButtons(_ enable: Bool) {
+        for button in letterButtons {
+            button.isEnabled = enable
+        }
+    }
+    
     func updateUI() {
-        let name = "Tree \(game.incorrectMovesRemaining)"
-        treeImageView.image = UIImage(named: name)
+        let imageName = "Tree \(game.incorrectMovesRemaining)"
+        treeImageView.image = UIImage(named: imageName)
         
         var letters = [String]()
-        for letter in game.formattedWord.uppercased() {
+        let formattedWord = game.formattedWord.uppercased()
+        for letter in formattedWord {
             letters.append(String(letter))
         }
+        
         let wordWithSpacing = letters.joined (separator: " ")
         correctWordLabel.text = wordWithSpacing
         scoreLabel.text = "Выигрыши: \(totalWins),  Проигрыши: \(totalLosses)"
@@ -56,9 +82,20 @@ class ViewController: UIViewController {
     
     @IBAction func buttonPressed(_ sender: UIButton) {
         sender.isEnabled = false
-        let letter = sender.title(for: .normal)!.lowercased()
-        game.playerGuessed(letter: Character(letter))
+        let letterString = sender.title(for: .normal)!
+        let letter = Character (letterString.lowercased())
+        game.playerGuessed(letter: letter)
+        updateGameState()
+
+    }
+    func updateGameState () {
+        if game.incorrectMovesRemaining < 1 {
+            totalLosses += 1
+        } else if game.word.lowercased() == game.formattedWord {
+            totalWins += 1
+        } else {
         updateUI()
+        }
     }
     
 }
